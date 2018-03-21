@@ -1,0 +1,8 @@
+hash: e82654a9e044ba1d474bba9ac9e0bcf06b64d131681000ff745bccb0f6270aed
+updated: 2018-03-21T17:22:18.2518454+08:00
+imports:
+- name: github.com/jinzhu/gorm
+  version: 6ed508ec6a4ecb3531899a69cbc746ccf65a4166
+- name: github.com/julienschmidt/httprouter
+  version: 8c199fb6259ffc1af525cc3ad52ee60ba8359669
+testImports: []
