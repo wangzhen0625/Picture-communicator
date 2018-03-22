@@ -1,14 +1,8 @@
 package models
 
-var Bookstore = make(map[string]*Book)
+import (
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
+)
 
-type Book struct {
-	// The main identifier for the Book. This will be unique.
-	ISDN   string `json:"isdn"`
-	Title  string `json:"title"`
-	Author string `json:"author"`
-	Pages  int    `json:"pages"`
-}
-
-
-
+var GormDb *gorm.DB

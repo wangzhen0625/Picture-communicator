@@ -17,7 +17,6 @@ func AllRoutes() Routes {
 		Route{"Delete", "DELETE", "/user/:id", user.Delete},
 		Route{"Login", "POST", "/user/login", user.Login},
 		Route{"Logout", "DELETE", "/user/:id/logout", user.Logout},
-		Route{"CreateTable", "POST", "/user/createtb", user.CreateTable},
 	}
 
 }
