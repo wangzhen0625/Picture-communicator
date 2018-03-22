@@ -1,0 +1,143 @@
+gorm
+
+1、模型
+    // 基本模型的定义
+    type User struct {
+        ID        uint `gorm:"primary_key"` // 列名为 `id`
+        // `type`设置sql类型, `unique_index` 为该列设置唯一索引
+        Email   string  `gorm:"type:varchar(100);unique_index"`  
+        CreatedAt time.Time
+        UpdatedAt time.Time
+        DeletedAt *time.Time
+    }
+    表名是结构体名称的复数形式 User => users
+    列名是字段名的蛇形小写 CreatedAt=>created_at
+    字段ID默认为主键
+    创建具有CreatedAt字段的记录将被设置为当前时间
+        db.Create(&user) // 将会设置`CreatedAt`为当前时间
+        // 要更改它的值, 你需要使用`Update`
+        db.Model(&user).Update("CreatedAt", time.Now())
+    字段UpdatedAt用于存储记录的修改时间
+        db.Save(&user) // 将会设置`UpdatedAt`为当前时间
+        db.Model(&user).Update("name", "jinzhu") // 将会设置`UpdatedAt`为当前时间
+    字段DeletedAt用于存储记录的删除时间，如果字段存在
+        存在该字段，则自动使用软删除
+
+2、数据表维护：
+    // 检查模型`User`表是否存在
+    db.HasTable(&User{})
+    // 创建表`users'时将“ENGINE = InnoDB”附加到SQL语句
+    db.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&User{})
+    // 删除模型`User`的表
+    db.DropTable(&User{})
+    // 修改模型`User`的description列的数据类型为`text`
+    db.Model(&User{}).ModifyColumn("description", "text")
+    // 删除模型`User`的description列
+    db.Model(&User{}).DropColumn("description")
+    // 为`name`, `age`列添加索引`idx_user_name_age`
+    db.Model(&User{}).AddIndex("idx_user_name_age", "name", "age")
+    // 为多列添加唯一索引
+    db.Model(&User{}).AddUniqueIndex("idx_user_name_age", "name", "age")
+    // 删除索引
+    db.Model(&User{}).RemoveIndex("idx_user_name")
+
+3、CURD
+    新增：
+        user := User{Name: "Jinzhu", Age: 18, Birthday: time.Now()}
+        db.NewRecord(user) // => 主键为空返回`true`
+        db.Create(&user)
+        db.NewRecord(user) // => 创建`user`后返回`false`
+    
+    查询：
+        // 获取第一条记录，按主键排序
+        db.First(&user)
+        //// SELECT * FROM users ORDER BY id LIMIT 1;
+        // 获取最后一条记录，按主键排序
+        db.Last(&user)
+        //// SELECT * FROM users ORDER BY id DESC LIMIT 1;
+        // 获取所有记录
+        db.Find(&users)
+        //// SELECT * FROM users;
+        // 使用主键获取记录
+        db.First(&user, 10)
+        //// SELECT * FROM users WHERE id = 10;
+
+        db.Where(&User{Name: "jinzhu", Age: 20}).First(&user)
+        //// SELECT * FROM users WHERE name = "jinzhu" AND age = 20 LIMIT 1;
+        db.Not(User{Name: "jinzhu"}).First(&user)
+        //// SELECT * FROM users WHERE name <> "jinzhu";
+        db.Where("name = 'jinzhu'").Or(User{Name: "jinzhu 2"}).Find(&users)
+        //// SELECT * FROM users WHERE name = 'jinzhu' OR name = 'jinzhu 2';
+
+    更新：基于查询
+        // 使用`struct`更新多个属性，只会更新这些更改的和非空白字段
+        db.Model(&user).Updates(User{Name: "hello", Age: 18})
+        // 使用`RowsAffected`获取更新记录计数
+        db.Model(User{}).Updates(User{Name: "hello", Age: 18}).RowsAffected
+
+    删除：
+        db.Delete(&user)
+        //// UPDATE users SET deleted_at="2013-10-29 10:23" WHERE id = 111;
+
+        // 批量删除
+        db.Where("age = ?", 20).Delete(&User{})
+        //// UPDATE users SET deleted_at="2013-10-29 10:23" WHERE age = 20;
+
+        // 软删除的记录将在查询时被忽略
+        db.Where("age = 20").Find(&user)
+        //// SELECT * FROM users WHERE age = 20 AND deleted_at IS NULL;
+
+        // 使用Unscoped查找软删除的记录
+        db.Unscoped().Where("age = 20").Find(&users)
+        //// SELECT * FROM users WHERE age = 20;
+
+        // 使用Unscoped永久删除记录
+        db.Unscoped().Delete(&order)
+        //// DELETE FROM orders WHERE id=10;
+4、错误处理
+    if err := db.Where("name = ?", "jinzhu").First(&user).Error; err != nil {
+        // 错误处理...
+    }
+
+    // 如果有多个错误发生，用`GetErrors`获取所有的错误，它返回`[]error`
+    db.First(&user).Limit(10).Find(&users).GetErrors()
+
+    // 检查是否返回RecordNotFound错误
+    db.Where("name = ?", "hello world").First(&user).RecordNotFound()
+    if db.Model(&user).Related(&credit_card).RecordNotFound() {
+        // 没有信用卡被发现处理...
+    }
+
+5、事务：
+    // 开始事务
+    tx := db.Begin()
+
+    // 在事务中做一些数据库操作（从这一点使用'tx'，而不是'db'）
+    tx.Create(...)
+
+    // ...
+
+    // 发生错误时回滚事务
+    tx.Rollback()
+
+    // 或提交事务
+    tx.Commit()
+
+6、实例：
+    func CreateAnimals(db *gorm.DB) err {
+        tx := db.Begin()
+        // 注意，一旦你在一个事务中，使用tx作为数据库句柄
+
+        if err := tx.Create(&Animal{Name: "Giraffe"}).Error; err != nil {
+            tx.Rollback()
+            return err
+        }
+
+        if err := tx.Create(&Animal{Name: "Lion"}).Error; err != nil {
+            tx.Rollback()
+            return err
+        }
+
+        tx.Commit()
+        return nil
+        }
