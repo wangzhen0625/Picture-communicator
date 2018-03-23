@@ -3,19 +3,20 @@ package tests
 import (
 	"Picture-communicator/handlers"
 	// "github.com/julienschmidt/httprouter"
+	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"net/http/httptest"
-	// "path/filepath"
-	// "runtime"
 	"testing"
-
-	. "github.com/smartystreets/goconvey/convey"
 )
 
-// func init() {
-// 	_, file, _, _ := runtime.Caller(1)
-// 	_, _ := filepath.Abs(filepath.Dir(filepath.Join(file, ".."+string(filepath.Separator))))
-// }
+/*
+用户注册
+用户登录
+用户登出
+用户获取个人信息
+用户更新个人信息
+用户删除个人信息
+*/
 
 // TestGet is a sample to run an endpoint test
 func TestGet(t *testing.T) {

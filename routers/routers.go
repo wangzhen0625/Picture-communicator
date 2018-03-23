@@ -8,7 +8,7 @@ func AllRoutes() Routes {
 	var user = &User{}
 	return Routes{
 		//name method patch  handler
-		//  /user
+		//  /users
 		Route{"Index", "GET", "/user", user.Index},
 		Route{"Get", "GET", "/user/:id", user.Get},
 		Route{"Post", "POST", "/user", user.Post},
@@ -17,6 +17,11 @@ func AllRoutes() Routes {
 		Route{"Delete", "DELETE", "/user/:id", user.Delete},
 		Route{"Login", "POST", "/user/login", user.Login},
 		Route{"Logout", "DELETE", "/user/:id/logout", user.Logout},
+
+		//  /friendgroups
+		//  /albums
+		//  /friends
+		//  /pictures
 	}
 
 }
